@@ -43,6 +43,9 @@
   ;; Move customization variables to a separate file and load it, avoid filling up init.el with unnecessary variables
   (setq custom-file (locate-user-emacs-file "custom-vars.el"))
   (load custom-file 'noerror 'nomessage)
+  (setq electric-pair-preserve-balance nil)
+  (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
+  (add-to-list 'default-frame-alist '(ns-appearance . dark))
   :bind (
          ([escape] . keyboard-escape-quit) ;; Makes Escape quit prompts (Minibuffer Escape)
          )
@@ -90,6 +93,18 @@
 (use-package magit
   ;; :custom (magit-diff-refine-hunk (quote all)) ;; Shows inline diff
   :commands magit-status)
+
+(use-package diff-hl
+  :demand t
+  :hook ((prog-mode . diff-hl-mode)
+         (org-mode . diff-hl-mode))
+  :custom
+  (setq
+   global-diff-hl-mode 1
+   diff-hl-flydiff-mode 1
+   diff-hl-dired-mode 1
+   diff-hl-margin-mode 1)
+  (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh))
 
 (use-package emacs
   :bind
@@ -265,6 +280,22 @@
   (interactive)
   (ultra-scroll-down (- (/ (window-pixel-height) 2) 30)))
 
+(defvar meow-project-keymap
+  (let ((keymap (make-keymap)))
+    (define-key keymap (kbd "f") #'project-find-file)
+    (define-key keymap (kbd "D") #'project-find-dir)
+    (define-key keymap (kbd "d") #'project-dired)
+    (define-key keymap (kbd "m") #'magit-project-status)
+    (define-key keymap (kbd "k") #'project-kill-buffers)
+    (define-key keymap (kbd "s") #'project-switch-project)
+    (define-key keymap (kbd "c") #'consult-project-buffer)
+    (define-key keymap (kbd "/") #'consult-ripgrep)
+    (define-key keymap (kbd "t") #'eat-project-other-window)
+    keymap))
+
+;; define an alias for your keymap
+(defalias 'meow-project-keymap meow-project-keymap)
+
 
 (defun meow-setup ()
   "Setup meow keys"
@@ -301,6 +332,7 @@
 
   (meow-leader-define-key 
    '("/" . consult-ripgrep)
+   '("p" . meow-project-keymap)
    '("fs" . save-buffer)
    )
   (meow-normal-define-key
