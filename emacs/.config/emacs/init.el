@@ -500,6 +500,9 @@
 (use-package zig-mode
   :ensure t)
 
+(use-package elm-mode
+  :ensure t)
+
 ;; Make gc pauses faster by decreasing the threshold.
 (setq gc-cons-threshold (* 2 1000 1000))
 ;; Increase the amount of data which Emacs reads from the process
