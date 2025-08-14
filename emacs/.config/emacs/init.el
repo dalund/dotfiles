@@ -21,6 +21,10 @@
 
   (blink-cursor-mode nil)     ;; Don't blink cursor
   (global-auto-revert-mode t) ;; Automatically reload file and show changes if the file has changed
+  ;; Check if the system is macOS.
+
+  (mac-command-modifier 'meta)  ;; Set the Command key to act as the Meta key.
+  (set-face-attribute 'default nil :family "Iosevka" :height 130)
 
   ;;(dired-kill-when-opening-new-dired-buffer t) ;; Dired don't create new buffer
   ;;(recentf-mode t) ;; Enable recent file mode
@@ -46,6 +50,14 @@
   (setq electric-pair-preserve-balance nil)
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
   (add-to-list 'default-frame-alist '(ns-appearance . dark))
+  (setq major-mode-remap-alist
+		'((yaml-mode . yaml-ts-mode)
+		  (bash-mode . bash-ts-mode)
+		  (js2-mode . js-ts-mode)
+		  (typescript-mode . typescript-ts-mode)
+		  (json-mode . json-ts-mode)
+		  (css-mode . css-ts-mode)
+		  (python-mode . python-ts-mode)))
   :bind (
          ([escape] . keyboard-escape-quit) ;; Makes Escape quit prompts (Minibuffer Escape)
          )
@@ -58,9 +70,13 @@
 ;;   :config
 ;;   (load-theme 'gruvbox-dark-medium t)) ;; We need to add t to trust this package
 
-(use-package catppuccin-theme)
-(setq catppuccin-flavor 'frappe)
-(catppuccin-reload)
+(use-package catppuccin-theme
+  :ensure t
+  :init 
+  (setq catppuccin-flavor 'frappe)
+  :config
+  ;; Load the Catppuccin theme without prompting for confirmation.
+  (load-theme 'catppuccin :no-confirm))
 
 (add-to-list 'default-frame-alist '(alpha-background . 90)) ;; For all new frames henceforth
 
@@ -438,7 +454,8 @@
    '("W" . meow-mark-symbol)
    '("x" . meow-line)
    '("y" . meow-save)
-   '("Y" . meow-sync-grab)
+										;'("Y" . meow-sync-grab)
+   '("Y" . me/copy-line)
    '("'" . meow-pop-selection)
    '("z" . repeat)
    '("Z" . meow-repeat)
@@ -534,6 +551,50 @@
 
 (use-package elm-mode
   :ensure t)
+
+;;; ORG-MODE
+;; Org-mode is a powerful system for organizing and managing your notes,
+;; tasks, and documents in plain text. It offers features like task management,
+;; outlining, scheduling, and much more, making it a versatile tool for
+;; productivity. The configuration below simply defers loading Org-mode until
+;; it's explicitly needed, which can help speed up Emacs startup time.
+(use-package org
+  :ensure nil     ;; This is built-in, no need to fetch it.
+  :config
+  (setq org-agenda-files '("~/org")
+		org-return-follows-link t)
+  (add-to-list 'auto-mode-alist '("\\.org\\'" . org-mode))
+  (define-key global-map "\C-ca" 'org-agenda)
+  (define-key global-map "\C-cc" 'org-capture)
+  (setq org-capture-templates
+		'(
+		  ("j" "Work log entry"
+		   entry (file+datetree "~/org/work-log.org")
+		   "* %?"
+		   :empty-lines 0)
+		  ("n" "Note"
+		   entry (file+headline "~/org/notes.org" "Random Notes")
+		   "** %?"
+		   :empty-lines 0)
+		  ("t" "General To-Do"
+		   entry (file+headline "~/org/todos.org" "General Tasks")
+		   "* TODO [#B] %?\n:Created: %T\n "
+		   :empty-lines 0)
+		  ("c" "Code To-Do"
+           entry (file+headline "~/org/todos.org" "Code Related Tasks")
+           "* TODO [#B] %?\n:Created: %T\n%i\n%a\nProposed Solution: "
+           :empty-lines 0))
+		))       ;; Defer loading Org-mode until it's needed.
+
+
+(use-package zig-mode
+  :ensure t
+  )
+
+(use-package eat
+  :ensure t
+  )
+
 
 ;; Make gc pauses faster by decreasing the threshold.
 (setq gc-cons-threshold (* 2 1000 1000))
